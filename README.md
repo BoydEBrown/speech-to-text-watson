@@ -9,7 +9,7 @@ Simple Node.js integration with the [Watson IBM Bluemix API for Speech to Text](
 
 - Bluemix API Username/Password keys
 
-####Install dependencies:
+######Install dependencies:
 
 	npm install
 	 
