@@ -19,9 +19,13 @@ files.forEach(function(file, idx){
       ready = true;
     }
   } else {
-    console.log("Bad file type, format must be .WAV");
-    if(idx === files.length - 1) {
-      ready = true;
+    if(file[0] != '.'){
+      console.log("Bad file type, format must be .WAV");
+      if(idx === files.length - 1) {
+        ready = true;
+      }
+    } else {
+      console.log("Hidden file or directory (.DS_Store or .git usually), skipping.");
     }
   }
 });
@@ -38,24 +42,25 @@ if(ready){
           content_type: 'audio/l16; rate=44100'
         }).on('error', function(err){
           console.log("Speech to Text Stream Error", err);
-          checked[checked.indexOf(item)] = {Status: Completed, fileLocation: "./resources/'+item"};
+          checked[checked.indexOf(item)] = {Status: "Completed", fileLocation: "./resources/'+item"};
           fs.writeFile('./resources/tracker/tracker.txt', checked);
-          fs.writeFile('./results/errors/watson-'+item, err);
+          fs.writeFile('./results/errors/watson-error-'+item, err);
         })
       ).pipe(
         fs.createWriteStream('./results/'+item+'.txt').on('error', function(err){
           console.log("Write Stream Error", err);
-          checked[checked.indexOf(item)] = {Status: Completed, fileLocation: "./resources/'+item"};
+          checked[checked.indexOf(item)] = {Status: "Completed", fileLocation: "./resources/'+item"};
           fs.writeFile('./resources/tracker/tracker.txt', checked);
-          fs.writeFile('./results/errors/write-'+item, err);
+          fs.writeFile('./results/errors/write-error-'+item, err);
         })
       ).on('finish', function(){
         console.log("Conversion finished for "+item);
-        checked[checked.indexOf(item)] = {Status: Completed, fileLocation: "./resources/'+item"};
+        checked[checked.indexOf(item)] = {Status: "Completed", fileLocation: "./resources/'+item"};
         callback(null, true);
       });
     });
   } catch(err) {
-
+    console.log("Error", err);
+    fs.writeFile('./results/errors/catch-error-'+currentItem, err);
   }
 };
