@@ -1,18 +1,20 @@
+// node module vars / environment
 var SpeechToTextV1 = require('watson-developer-cloud/speech-to-text/v1');
 var fs = require('fs');
 var async = require('async');
-
 var speech_to_text = new SpeechToTextV1({
   "password": process.env.SERVICE_NAME_PASSWORD,
   "username": process.env.SERVICE_NAME_USERNAME
 });
 
+// set local vars
 var checked = [],
     tracked = [],
     files = fs.readdirSync('./resources'),
     currentItem = '',
     ready = false;
 
+// read resources dir and load files
 files.forEach(function(file, idx){
   if(file.match(/(\.|\/)(wav)$/i)){
     checked.push(file);
@@ -32,17 +34,21 @@ files.forEach(function(file, idx){
   }
 });
 
+// after resources dir is read, begin watson call
 if(ready){
   fs.writeFile('./resources/tracker/tracker.txt', tracked);
   try {
     async.eachLimit(checked, process.env.FILE_ASYNC_LIMIT, function(item, callback) {
+
+      // set current item for error & tracking
       console.log("Running "+item);
       currentItem = item;
 
+      // splice item for tracking file
       tracked.splice(tracked,indexOf(item), 1);
-
       fs.writeFile('./resources/tracker/tracker.txt', tracked);
 
+      // create file stream
       fs.createReadStream('./resources/'+item)
       .pipe(
         speech_to_text.createRecognizeStream({
@@ -65,6 +71,7 @@ if(ready){
         checked[checked.indexOf(item)] = {Status: "Completed", fileLocation: "./resources/'+item"};
         callback(null, true);
       });
+
     });
   } catch(err) {
     console.log("Error", err);
