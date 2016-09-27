@@ -8,6 +8,7 @@ var speech_to_text = new SpeechToTextV1({
 });
 
 var checked = [],
+    tracked = [],
     files = fs.readdirSync('./resources'),
     currentItem = '',
     ready = false;
@@ -15,6 +16,7 @@ var checked = [],
 files.forEach(function(file, idx){
   if(file.match(/(\.|\/)(wav)$/i)){
     checked.push(file);
+    tracked.push(file);
     if(idx === files.length - 1) {
       ready = true;
     }
@@ -31,11 +33,16 @@ files.forEach(function(file, idx){
 });
 
 if(ready){
-  fs.writeFile('./resources/tracker/tracker.txt', checked);
+  fs.writeFile('./resources/tracker/tracker.txt', tracked);
   try {
     async.eachLimit(checked, process.env.FILE_ASYNC_LIMIT, function(item, callback) {
       console.log("Running "+item);
       currentItem = item;
+
+      tracked.splice(tracked,indexOf(item), 1);
+
+      fs.writeFile('./resources/tracker/tracker.txt', tracked);
+
       fs.createReadStream('./resources/'+item)
       .pipe(
         speech_to_text.createRecognizeStream({
